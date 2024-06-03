@@ -1,68 +1,59 @@
 <%- include("layout") %>
 
-<div class="container-fluid">
-  <div class="row" style="height: 100vh">
-    <!-- Sidebar Column (30%) -->
-    <div class="col-2 bg-dark text-white p-0" id="sidebar">
-      <%- include('partials/header') %>
-    </div>
-    <!-- Main Content Column (70%) -->
-    <div class="col-10 overflow-y: auto" id="main-content">
-      <h2 class="mb-4">Ticket Details</h2>
-
-      <div class="container" style="height: 100vh">
-        <%for(let ticket of tickets){%>
-        <div class="card shadow-lg mb-4">
-          <div class="card-header bg-primary text-white">
-            <h5 class="card-title mb-0">
-              #<%= ticket.id %> - <%= ticket.title %>
-            </h5>
+<!-- Main Content Column (70%) -->
+<div class="col-10 overflow-auto" id="main-content">
+  <div class="container py-4">
+    <h2 class="mb-4">Ticket Details</h2>
+    <% for (let ticket of tickets) { %>
+    <div
+      class="card shadow-sm mb-4 border-0"
+      style="border-top: 3px solid #0d6efd"
+    >
+      <div
+        class="card-header d-flex justify-content-between align-items-center bg-light text-dark"
+      >
+        <h5 class="card-title mb-0">
+          <span class="text-primary">#<%= ticket.id %></span> - <%= ticket.title
+          %>
+        </h5>
+        <span class="badge badge-info text-dark"><%= ticket.priority %></span>
+      </div>
+      <div class="card-body">
+        <p class="card-text text-muted"><%= ticket.description %></p>
+        <div class="row mb-3">
+          <div class="col-md-4">
+            <strong>Category:</strong> <%= ticket.category %>
           </div>
-          <div class="card-body">
-            <p class="card-text"><%= ticket.description %></p>
-            <ul class="list-group list-group-flush mb-3">
-              <li class="list-group-item border-bottom-0">
-                <strong>Priority:</strong>
-                <span class="badge bg-danger"><%= ticket.priority %></span>
-              </li>
-              <li class="list-group-item border-bottom-0">
-                <strong>Category:</strong> <%= ticket.category %>
-              </li>
-              <li class="list-group-item border-bottom-0">
-                <strong>Assigned To:</strong> <%= ticket.assignedto %>
-              </li>
-              <li class="list-group-item">
-                <strong>Incident For:</strong> <%= ticket.incidentfor %>
-              </li>
-            </ul>
-            <div class="d-flex justify-content-between align-items-center">
-              <div class="btn-group">
-                <a
-                  href="/update/<%= ticket.id %>"
-                  class="btn btn-sm btn-outline-primary"
-                  >Update</a
-                >
-                <a
-                  href="/view/<%= ticket.id %>"
-                  class="btn btn-sm btn-outline-secondary"
-                  >View More</a
-                >
-              </div>
-              <% if(user.role==="IT Support"){ %>
-              <a href="/delete/<%=ticket.id  %>"
-                ><button class="btn btn-sm btn-outline-danger">
-                  Delete
-                </button></a
-              >
-              <% } %>
-            </div>
+          <div class="col-md-4">
+            <strong>Assigned To:</strong> <%= ticket.assignedto %>
+          </div>
+          <div class="col-md-4">
+            <strong>Incident For:</strong> <%= ticket.incidentfor %>
           </div>
         </div>
-
-        <%} %>
-
-        <!-- Repeat the above card structure for additional tickets -->
+        <div class="d-flex justify-content-between align-items-center">
+          <div>
+            <a
+              href="/update/<%= ticket.id %>"
+              class="btn btn-outline-primary btn-sm"
+              >Update</a
+            >
+            <a
+              href="/view/<%= ticket.id %>"
+              class="btn btn-outline-secondary btn-sm"
+              >View More</a
+            >
+          </div>
+          <% if (user.role === "IT Support") { %>
+          <a
+            href="/delete/<%= ticket.id %>"
+            class="btn btn-outline-danger btn-sm"
+            >Delete</a
+          >
+          <% } %>
+        </div>
       </div>
     </div>
+    <% } %>
   </div>
 </div>
