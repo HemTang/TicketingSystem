@@ -245,8 +245,6 @@ app.post(
   })
 );
 
-///passport strategy
-
 // Passport middleware
 passport.use(
   new Strategy(
@@ -308,7 +306,6 @@ passport.deserializeUser((user, cb) => {
 });
 
 ///Middleware to authorization
-
 function authorize(role) {
   return function (req, res, next) {
     if (req.isAuthenticated() && req.user.role === role) {
