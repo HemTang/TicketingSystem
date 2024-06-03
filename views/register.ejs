@@ -1,0 +1,72 @@
+<%- include("layout") %>
+
+<div class="container-fluid">
+  <div class="row" style="height: 100vh">
+    <!-- Sidebar Column (30%) -->
+    <div class="col-2 bg-dark text-white p-0" id="sidebar">
+      <%- include('partials/header') %>
+    </div>
+    <!-- Main Content Column (70%) -->
+    <div class="col-10" id="main-content">
+      <main class="container">
+        <div class="row justify-content-center">
+          <div class="col-md-6">
+            <div class="card shadow-lg mt-5">
+              <div class="card-header bg-primary text-white text-center">
+                <h2>Register</h2>
+              </div>
+              <div class="card-body p-4">
+                <form action="/register" method="post">
+                  <div class="form-group">
+                    <label for="username">Email</label>
+                    <input
+                      type="text"
+                      class="form-control"
+                      id="username"
+                      name="email"
+                      required
+                    />
+                  </div>
+                  <div class="form-group">
+                    <label for="password">Password</label>
+                    <input
+                      type="password"
+                      class="form-control"
+                      id="password"
+                      name="password"
+                      required
+                    />
+                    <label for="role">role</label>
+                    <input
+                      type="text"
+                      class="form-control"
+                      id="role"
+                      name="role"
+                      required
+                    />
+                    <label for="name">Name</label>
+                    <input
+                      type="text"
+                      class="form-control"
+                      id="name"
+                      name="name"
+                      required
+                    />
+                  </div>
+                  <button type="submit" class="btn btn-primary btn-block">
+                    Register
+                  </button>
+                  <div class="text-center mt-3">
+                    <a href="/login" class="text-primary"
+                      >Already have an account? Login</a
+                    >
+                  </div>
+                </form>
+              </div>
+            </div>
+          </div>
+        </div>
+      </main>
+    </div>
+  </div>
+</div>

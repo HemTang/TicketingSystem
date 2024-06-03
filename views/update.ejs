@@ -1,0 +1,101 @@
+<%- include("layout") %>
+
+<div class="container-fluid">
+  <div class="row" style="height: 100vh">
+    <!-- Sidebar Column (30%) -->
+    <div class="col-2 bg-dark text-white p-0" id="sidebar">
+      <%- include('partials/header') %>
+    </div>
+    <!-- Main Content Column (70%) -->
+    <div class="col-10" id="main-content">
+      <main class="container">
+        <H1>This ticket creating form</H1>
+
+        <!-- Ticket Creation Form -->
+        <div class="container">
+          <h2 class="mb-4">Create Ticket</h2>
+          <form action="/create" method="POST">
+            <div class="mb-3">
+              <label for="title" class="form-label">Title</label>
+              <input
+                type="text"
+                class="form-control"
+                id="title"
+                name="title"
+                value="<%=ticket.title %>"
+                required
+              />
+            </div>
+            <div class="mb-3">
+              <label for="description" class="form-label">Description</label>
+              <textarea
+                class="form-control"
+                id="description"
+                name="description"
+                rows="3"
+                required
+              >
+<%=ticket.description %></textarea
+              >
+            </div>
+            <div class="row mb-3">
+              <div class="col-md-6">
+                <label for="priority" class="form-label">Priority</label>
+                <select
+                  class="form-select"
+                  id="priority"
+                  name="priority"
+                  value="<%=ticket.priority %>"
+                  required
+                >
+                  <option value="" selected disabled>Select Priority</option>
+                  <option value="Low">Low</option>
+                  <option value="Medium">Medium</option>
+                  <option value="High">High</option>
+                </select>
+              </div>
+              <div class="col-md-6">
+                <label for="category" class="form-label">Category</label>
+                <select
+                  class="form-select"
+                  id="category"
+                  name="category"
+                  value="<%=ticket. category %>"
+                  required
+                >
+                  <option value="" selected disabled>Select Category</option>
+                  <option value="Hardware">Hardware</option>
+                  <option value="Software">Software</option>
+                  <option value="Network">Network</option>
+                </select>
+              </div>
+            </div>
+            <div class="mb-3">
+              <label for="requested_by" class="form-label">Requested By</label>
+              <input
+                type="text"
+                class="form-control"
+                id="requested_by"
+                name="requestedby"
+                value="<%=ticket.requestedby %>"
+                required
+              />
+            </div>
+            <div class="mb-3">
+              <label for="incident_for" class="form-label">Incident For</label>
+              <input
+                type="text"
+                class="form-control"
+                id="incident_for"
+                name="incidentfor"
+                value="<%=ticket.incidentfor %>"
+                required
+              />
+            </div>
+            <button type="submit" class="btn btn-primary">Submit</button>
+          </form>
+        </div>
+      </main>
+    </div>
+  </div>
+</div>
