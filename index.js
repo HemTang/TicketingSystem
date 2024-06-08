@@ -189,17 +189,31 @@ app.get("/view/:id", async (req, res) => {
 app.get("/update/:id", async (req, res) => {
   const id = req.params.id;
   const result = await db.query(`SELECT * FROM tickets WHERE id=$1`, [id]);
-  res.render("update.ejs", { ticket: result.rows[0] });
+  const ITUser = await db.query(`SELECT * FROM users WHERE role=$1`, [
+    "IT Support",
+  ]);
+  res.render("update.ejs", { ticket: result.rows[0], ITUser: ITUser.rows });
 });
 
 //updating ticket
-app.put("/update/:id", async (req, res) => {
-  const id = req.params.id;
-  await db.query("UPDATE tickets SET ");
+app.put("/update/:id", authorize("IT Support"), async (req, res) => {
+  try {
+    const id = req.params.id;
+    const { title, description, priority, category, assignedto, incidentfor } =
+      req.body;
+    await db.query(
+      "UPDATE tickets SET title = $1, description= $2, priority= $3,category =$4, assignedto=$5, incidentfor=$6",
+      [title, description, priority, category, assignedto, incidentfor]
+    );
+    res.redirect("/unassigned");
+  } catch {
+    console.error("Error while updating ticket and related activities:", error);
+    res.status(500).send("server Error");
+  }
 });
 
 // Delete ticket
-app.get("/delete/:id", async (req, res) => {
+app.get("/delete/:id", authorize("IT Support"), async (req, res) => {
   const id = req.params.id;
   try {
     await db.query("DELETE FROM tickets WHERE id=$1", [id]);
@@ -228,7 +242,7 @@ app.post("/comment/:id", async (req, res) => {
   }
 });
 //Delete ticket_comment
-app.get("/delete_comment/:id", async (req, res) => {
+app.get("/delete_comment/:id", authorize("IT Support"), async (req, res) => {
   const id = req.params.id;
   const result = await db.query("SELECT * FROM activities WHERE  id=$1", [id]);
   await db.query("DELETE FROM activities  WHERE id=$1", [id]);

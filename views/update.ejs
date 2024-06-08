@@ -71,15 +71,14 @@
               </div>
             </div>
             <div class="mb-3">
-              <label for="requested_by" class="form-label">Requested By</label>
-              <input
-                type="text"
-                class="form-control"
-                id="requested_by"
-                name="requestedby"
-                value="<%=ticket.requestedby %>"
-                required
-              />
+              <label for="assignedto" class="form-label">Assigned To</label>
+              <select class="form-select" id="assignedto" name="assignedto">
+                <option value="" selected disabled>Assigned to</option>
+
+                <% for(let user of ITUser) {%>
+                <option value="<%=user.name %>"><%=user.name %></option>
+                <% } %>
+              </select>
             </div>
             <div class="mb-3">
               <label for="incident_for" class="form-label">Incident For</label>
