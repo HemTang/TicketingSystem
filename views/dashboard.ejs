@@ -1,16 +1,88 @@
 <%- include("layout") %>
 
-<div class="container-fluid">
-  <div class="row" style="height: 100vh">
-    <!-- Sidebar Column (30%) -->
-    <div class="col-2 bg-dark text-white p-0" id="sidebar">
-      <%- include('partials/header') %>
-    </div>
-    <!-- Main Content Column (70%) -->
-    <div class="col-10" id="main-content">
-      <main class="container">
-        <H1>This is dashboard</H1>
-      </main>
+<!-- Main Content Column (70%) -->
+<div class="col-10" id="main-content">
+  <h1 class="mt-4 mb-4 text-center">This is dashboard</h1>
+
+  <!-- Dashboard Grid Container -->
+  <div class="dashboard-container">
+    <div class="dashboard-grid">
+      <!-- Card for individual user tickets -->
+      <div class="dashboard-card">
+        <h5>Individual Tickets</h5>
+        <p>User: John Doe</p>
+        <p>Tickets Assigned: 10</p>
+      </div>
+
+      <!-- Card for team tickets -->
+      <div class="dashboard-card">
+        <h5>Team Tickets</h5>
+        <p>Team: Support</p>
+        <p>Tickets Assigned: 25</p>
+      </div>
+
+      <!-- Card for category tickets (e.g., IT Issues) -->
+      <div class="dashboard-card">
+        <h5>Category: IT Issues</h5>
+        <p>Tickets in Category: 15</p>
+      </div>
+
+      <!-- Additional cards for other categories or information -->
+      <div class="dashboard-card">
+        <h5>Category: Hardware</h5>
+        <p>Tickets in Category: 20</p>
+      </div>
+
+      <div class="dashboard-card">
+        <h5>Category: Software</h5>
+        <p>Tickets in Category: 12</p>
+      </div>
+
+      <div class="dashboard-card">
+        <h5>Category: Network</h5>
+        <p>Tickets in Category: 8</p>
+      </div>
+
+      <!-- Larger card spanning more columns -->
+      <div class="dashboard-card" style="grid-column: span 2">
+        <h5>Summary</h5>
+        <p>Total Tickets: 80</p>
+        <p>Resolved Tickets: 50</p>
+        <p>Pending Tickets: 30</p>
+      </div>
+
+      <!-- Another large card with different content -->
+      <div class="dashboard-card" style="grid-column: span 3">
+        <h5>Overall Performance</h5>
+        <p>Performance Metrics: 85%</p>
+        <p>Average Resolution Time: 2.5 hours</p>
+      </div>
+
+      <!-- Smaller card, highlighting urgent issues -->
+      <div class="dashboard-card" style="grid-column: span 1">
+        <h5>Urgent</h5>
+        <p>Urgent Tickets: 5</p>
+      </div>
+
+      <!-- Medium card with additional statistics -->
+      <div class="dashboard-card" style="grid-column: span 2">
+        <h5>Customer Satisfaction</h5>
+        <p>Overall Satisfaction: 90%</p>
+        <p>Feedback Received: 120</p>
+      </div>
+
+      <!-- Another standard-sized card -->
+      <div class="dashboard-card">
+        <h5>Average Handling Time</h5>
+        <p>Handling Time: 3 hours</p>
+        <p>Tickets Processed: 60</p>
+      </div>
+
+      <!-- Another small card -->
+      <div class="dashboard-card">
+        <h5>New Tickets</h5>
+        <p>New Tickets Today: 7</p>
+      </div>
     </div>
   </div>
 </div>
