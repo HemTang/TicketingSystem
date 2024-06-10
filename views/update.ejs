@@ -14,7 +14,7 @@
         <!-- Ticket Creation Form -->
         <div class="container">
           <h2 class="mb-4">Create Ticket</h2>
-          <form action="/create" method="POST">
+          <form action="/update/<%= ticket.id %>?_method=PUT" method="POST">
             <div class="mb-3">
               <label for="title" class="form-label">Title</label>
               <input

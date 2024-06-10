@@ -8,6 +8,8 @@ import { Strategy } from "passport-local";
 import session from "express-session";
 import flash from "express-flash";
 
+import methodOverride from "method-override";
+
 // Create an instance of Express app
 const app = express();
 const port = 3000; // Set your desired port
@@ -35,6 +37,9 @@ app.use(flash());
 //Passport middleware
 app.use(passport.initialize());
 app.use(passport.session());
+
+// Use method-override to support PUT and DELETE methods in forms
+app.use(methodOverride("_method"));
 
 ///setting up the PostgeSQL database
 
@@ -171,18 +176,24 @@ app.post("/create", async (req, res) => {
 //Viewing ticket
 app.get("/view/:id", async (req, res) => {
   const id = req.params.id;
-  const result = await db.query(`SELECT * FROM tickets WHERE id=$1`, [id]);
-  const act_ticket = await db.query(
-    "SELECT a.id, a.activity_description as activity, a.ticket_id  FROM activities a JOIN tickets t ON a.ticket_id = t.id WHERE a.ticket_id = $1",
-    [id]
-  );
-  console.log(act_ticket.rows);
 
-  res.render("view.ejs", {
-    ticket: result.rows[0],
-    activities: act_ticket.rows,
-    user: req.user,
-  });
+  try {
+    const result = await db.query(`SELECT * FROM tickets WHERE id=$1`, [id]);
+    const act_ticket = await db.query(
+      "SELECT id, ticket_id as t_id, activity_description as activity FROM activities WHERE ticket_id = $1",
+      [id]
+    );
+    console.log(act_ticket.rows);
+
+    res.render("view.ejs", {
+      ticket: result.rows[0],
+      activities: act_ticket.rows,
+      user: req.user,
+    });
+  } catch (error) {
+    console.error("Error creating ticket:", error);
+    res.status(500).send("Server Error");
+  }
 });
 
 //view update form
@@ -202,23 +213,27 @@ app.put("/update/:id", authorize("IT Support"), async (req, res) => {
     const { title, description, priority, category, assignedto, incidentfor } =
       req.body;
     await db.query(
-      "UPDATE tickets SET title = $1, description= $2, priority= $3,category =$4, assignedto=$5, incidentfor=$6",
-      [title, description, priority, category, assignedto, incidentfor]
+      "UPDATE tickets SET title = $1, description= $2, priority= $3,category =$4, assignedto=$5, incidentfor=$6 WHERE id=$7",
+      [title, description, priority, category, assignedto, incidentfor, id]
     );
     res.redirect("/unassigned");
-  } catch {
+  } catch (error) {
     console.error("Error while updating ticket and related activities:", error);
     res.status(500).send("server Error");
   }
 });
 
 // Delete ticket
-app.get("/delete/:id", authorize("IT Support"), async (req, res) => {
+app.delete("/delete/:id", authorize("IT Support"), async (req, res) => {
   const id = req.params.id;
   try {
+    await db.query("BEGIN");
     await db.query("DELETE FROM tickets WHERE id=$1", [id]);
+    await db.query("DELETE FROM activities WHERE ticket_id=$1", [id]);
+    await db.query("COMMIT");
     res.redirect("/t_list");
   } catch (error) {
+    await db.query("ROLLBACK");
     console.error("Error while deleting ticket and related activities:", error);
     res.status(500).send("Server Error");
   }
@@ -242,13 +257,25 @@ app.post("/comment/:id", async (req, res) => {
   }
 });
 //Delete ticket_comment
-app.get("/delete_comment/:id", authorize("IT Support"), async (req, res) => {
-  const id = req.params.id;
-  const result = await db.query("SELECT * FROM activities WHERE  id=$1", [id]);
-  await db.query("DELETE FROM activities  WHERE id=$1", [id]);
-  console.log(result.rows[0].ticket_id);
-  res.redirect(`/view/${result.rows[0].ticket_id}`);
-});
+app.delete(
+  "/delete_comment/:id/ticket/:t_id",
+  authorize("IT Support"),
+  async (req, res) => {
+    const { id, t_id } = req.params;
+    console.log("Comment ID:", id, "Ticket ID:", t_id);
+    try {
+      await db.query("BEGIN");
+      const result = await db.query("DELETE FROM activities WHERE id=$1", [id]);
+      await db.query("COMMIT");
+      console.log("Deletion Result:", result.rowCount); // Debugging line
+      res.redirect(`/view/${t_id}`);
+    } catch (error) {
+      await db.query("ROLLBACK");
+      console.error("Error while deleting comment:", error);
+      res.status(500).send("Server Error");
+    }
+  }
+);
 
 // Login user
 app.post(

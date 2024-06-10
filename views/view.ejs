@@ -130,12 +130,14 @@
                 </div>
                 <% if(user.role==="IT Support"){ %>
                 <div class="btn-group">
-                  <a
-                    href="/delete_comment/<%=activity.id%>"
-                    class="btn btn-sm btn-outline-danger"
+                  <form
+                    action="/delete_comment/<%=activity.id%>/ticket/<%=ticket.id%>?_method=DELETE"
+                    method="POST"
                   >
-                    Delete
-                  </a>
+                    <button type="submit" class="btn btn-outline-danger btn-sm">
+                      Delete
+                    </button>
+                  </form>
                 </div>
                 <% } %>
               </div>

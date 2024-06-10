@@ -45,11 +45,12 @@
             >
           </div>
           <% if (user.role === "IT Support") { %>
-          <a
-            href="/delete/<%= ticket.id %>"
-            class="btn btn-outline-danger btn-sm"
-            >Delete</a
-          >
+          <form action="/delete/<%= ticket.id %>?_method=DELETE" method="POST">
+            <button type="submit" class="btn btn-outline-danger btn-sm">
+              Delete
+            </button>
+          </form>
+
           <% } %>
         </div>
       </div>
