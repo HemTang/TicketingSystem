@@ -60,9 +60,43 @@ app.get("/", async (req, res) => {
     res.redirect("/login");
   }
 });
+
+//Dashboard information
 app.get("/dashboard", async (req, res) => {
   if (req.isAuthenticated()) {
-    res.render("dashboard.ejs");
+    try {
+      const open_t = await db.query("SELECT COUNT(*) FROM tickets ");
+      const unassigned_t = await db.query(
+        "SELECT COUNT(*) FROM tickets WHERE assignedto IS null"
+      );
+      const hardware_t = await db.query(
+        "select count(*) from tickets where category = $1",
+        ["Hardware"]
+      );
+      const software_t = await db.query(
+        "select count(*) from tickets where category = $1",
+        ["Software"]
+      );
+      const network_t = await db.query(
+        "select count(*) from tickets where category = $1",
+        ["Network"]
+      );
+      const team_t = await db.query(
+        "select u.name as T_name, count(t.id) as T_number  from tickets as t join users as u on t.assignedto = u.name group by u.name"
+      );
+
+      res.render("dashboard.ejs", {
+        open_ticket: open_t.rows[0].count,
+        unassigned_ticket: unassigned_t.rows[0].count,
+        hardware_ticket: hardware_t.rows[0].count,
+        software_ticket: software_t.rows[0].count,
+        network_ticket: network_t.rows[0].count,
+        team_tickets: team_t.rows,
+      });
+    } catch (error) {
+      console.error("Error fetching dashboard info:", error);
+      res.status(500).send("Server Error");
+    }
   } else {
     res.redirect("/login");
   }

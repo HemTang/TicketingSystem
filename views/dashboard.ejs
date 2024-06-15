@@ -9,46 +9,47 @@
     <div class="dashboard-grid">
       <!-- Card for individual user tickets -->
       <div class="dashboard-card">
-        <h5>Individual Tickets</h5>
-        <p>User: John Doe</p>
-        <p>Tickets Assigned: 10</p>
+        <h3>Open Tickets</h3>
+        <h1><%=open_ticket%></h1>
       </div>
 
-      <!-- Card for team tickets -->
+      <!-- Card for Unassigned tickets -->
       <div class="dashboard-card">
-        <h5>Team Tickets</h5>
-        <p>Team: Support</p>
-        <p>Tickets Assigned: 25</p>
+        <h3>Unassigned Ticket</h3>
+        <h1><%=unassigned_ticket%></h1>
       </div>
 
-      <!-- Card for category tickets (e.g., IT Issues) -->
+      <!-- Card for close ticket by you -->
       <div class="dashboard-card">
-        <h5>Category: IT Issues</h5>
-        <p>Tickets in Category: 15</p>
+        <h3>Closed Ticket</h3>
+        <h1>0</h1>
       </div>
 
-      <!-- Additional cards for other categories or information -->
+      <!-- Card for Category hardware ticket  -->
       <div class="dashboard-card">
         <h5>Category: Hardware</h5>
-        <p>Tickets in Category: 20</p>
+        <p>Tickets in Category:</p>
+        <h3><%=hardware_ticket%></h3>
       </div>
 
       <div class="dashboard-card">
         <h5>Category: Software</h5>
-        <p>Tickets in Category: 12</p>
+        <p>Tickets in Category:</p>
+        <h3><%=software_ticket%></h3>
       </div>
 
       <div class="dashboard-card">
         <h5>Category: Network</h5>
-        <p>Tickets in Category: 8</p>
+        <p>Tickets in Category:</p>
+        <h3><%=network_ticket%></h3>
       </div>
 
-      <!-- Larger card spanning more columns -->
-      <div class="dashboard-card" style="grid-column: span 2">
-        <h5>Summary</h5>
-        <p>Total Tickets: 80</p>
-        <p>Resolved Tickets: 50</p>
-        <p>Pending Tickets: 30</p>
+      <!-- Card to display teams ticket-->
+      <div class="dashboard-card summary-card" style="grid-column: span 2">
+        <% for(let team of team_tickets) {%>
+        <p><%=team.t_name %> : <%=team.t_number%></p>
+
+        <% } %>
       </div>
 
       <!-- Another large card with different content -->
