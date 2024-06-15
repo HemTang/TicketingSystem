@@ -41,6 +41,44 @@ app.use(passport.session());
 // Use method-override to support PUT and DELETE methods in forms
 app.use(methodOverride("_method"));
 
+//Generic global middleware
+app.use((req, res, next) => {
+  console.log(`${req.method}  ${req.path}`);
+  next();
+});
+
+// Middleware to Aunthenticate user
+const isAuthenticated = (req, res, next) => {
+  const currentHour = new Date().getHours();
+  let greeting;
+
+  if (currentHour < 12) {
+    greeting = "Good Morning";
+  } else if (currentHour < 18) {
+    greeting = "Good Afternoon";
+  } else {
+    greeting = "Good Evening";
+  }
+  if (req.isAuthenticated()) {
+    greeting += `, ${req.user.name}`;
+    res.locals.greeting = greeting;
+    next();
+  } else {
+    res.redirect("/login");
+  }
+};
+
+///Middleware to authorization
+function authorize(role) {
+  return function (req, res, next) {
+    if (req.isAuthenticated() && req.user.role === role) {
+      return next();
+    } else {
+      res.status(403).send("Forbidden");
+    }
+  };
+}
+
 ///setting up the PostgeSQL database
 
 const db = new pg.Client({
@@ -62,46 +100,42 @@ app.get("/", async (req, res) => {
 });
 
 //Dashboard information
-app.get("/dashboard", async (req, res) => {
-  if (req.isAuthenticated()) {
-    try {
-      const open_t = await db.query("SELECT COUNT(*) FROM tickets ");
-      const unassigned_t = await db.query(
-        "SELECT COUNT(*) FROM tickets WHERE assignedto IS null"
-      );
-      const hardware_t = await db.query(
-        "select count(*) from tickets where category = $1",
-        ["Hardware"]
-      );
-      const software_t = await db.query(
-        "select count(*) from tickets where category = $1",
-        ["Software"]
-      );
-      const network_t = await db.query(
-        "select count(*) from tickets where category = $1",
-        ["Network"]
-      );
-      const team_t = await db.query(
-        "select u.name as T_name, count(t.id) as T_number  from tickets as t join users as u on t.assignedto = u.name group by u.name"
-      );
+app.get("/dashboard", isAuthenticated, async (req, res) => {
+  try {
+    const open_t = await db.query("SELECT COUNT(*) FROM tickets ");
+    const unassigned_t = await db.query(
+      "SELECT COUNT(*) FROM tickets WHERE assignedto IS null"
+    );
+    const hardware_t = await db.query(
+      "select count(*) from tickets where category = $1",
+      ["Hardware"]
+    );
+    const software_t = await db.query(
+      "select count(*) from tickets where category = $1",
+      ["Software"]
+    );
+    const network_t = await db.query(
+      "select count(*) from tickets where category = $1",
+      ["Network"]
+    );
+    const team_t = await db.query(
+      "select u.name as T_name, count(t.id) as T_number  from tickets as t join users as u on t.assignedto = u.name group by u.name"
+    );
 
-      res.render("dashboard.ejs", {
-        open_ticket: open_t.rows[0].count,
-        unassigned_ticket: unassigned_t.rows[0].count,
-        hardware_ticket: hardware_t.rows[0].count,
-        software_ticket: software_t.rows[0].count,
-        network_ticket: network_t.rows[0].count,
-        team_tickets: team_t.rows,
-      });
-    } catch (error) {
-      console.error("Error fetching dashboard info:", error);
-      res.status(500).send("Server Error");
-    }
-  } else {
-    res.redirect("/login");
+    res.render("dashboard.ejs", {
+      open_ticket: open_t.rows[0].count,
+      unassigned_ticket: unassigned_t.rows[0].count,
+      hardware_ticket: hardware_t.rows[0].count,
+      software_ticket: software_t.rows[0].count,
+      network_ticket: network_t.rows[0].count,
+      team_tickets: team_t.rows,
+    });
+  } catch (error) {
+    console.error("Error fetching dashboard info:", error);
+    res.status(500).send("Server Error");
   }
 });
-app.get("/a_ticket", async (req, res) => {
+app.get("/a_ticket", isAuthenticated, async (req, res) => {
   if (req.isAuthenticated()) {
     const A_tickets = await db.query(
       "SELECT * FROM tickets WHERE assignedto=$1",
@@ -112,42 +146,30 @@ app.get("/a_ticket", async (req, res) => {
     res.redirect("/login");
   }
 });
-app.get("/t_list", async (req, res) => {
-  if (req.isAuthenticated()) {
-    const result = await db.query(`SELECT * FROM tickets`);
-    console.log(result.rows);
-    res.render("t_list.ejs", { tickets: result.rows, user: req.user });
-  } else {
-    res.redirect("/login");
-  }
+app.get("/t_list", isAuthenticated, async (req, res) => {
+  const result = await db.query(`SELECT * FROM tickets`);
+  console.log(result.rows);
+  res.render("t_list.ejs", { tickets: result.rows, user: req.user });
 });
-app.get("/create_ticket", async (req, res) => {
-  if (req.isAuthenticated()) {
-    const ITUser = await db.query(`SELECT * FROM users WHERE role=$1`, [
-      "IT Support",
-    ]);
-    console.log(ITUser.rows);
-    res.render("create_ticket.ejs", { ITUser: ITUser.rows });
-  } else {
-    res.redirect("/login");
-  }
+app.get("/create_ticket", isAuthenticated, async (req, res) => {
+  const ITUser = await db.query(`SELECT * FROM users WHERE role=$1`, [
+    "IT Support",
+  ]);
+  console.log(ITUser.rows);
+  res.render("create_ticket.ejs", { ITUser: ITUser.rows });
 });
-app.get("/unassigned", async (req, res) => {
-  if (req.isAuthenticated()) {
-    try {
-      const result = await db.query(
-        `SELECT * FROM tickets WHERE assignedto IS NULL`
-      );
-      res.render("unassigned.ejs", {
-        unassignedTickets: result.rows,
-        user: req.user,
-      });
-    } catch (error) {
-      console.error("Error fetching unassigned tickets:", error);
-      res.status(500).send("Server Error");
-    }
-  } else {
-    res.redirect("/login");
+app.get("/unassigned", isAuthenticated, async (req, res) => {
+  try {
+    const result = await db.query(
+      `SELECT * FROM tickets WHERE assignedto IS NULL`
+    );
+    res.render("unassigned.ejs", {
+      unassignedTickets: result.rows,
+      user: req.user,
+    });
+  } catch (error) {
+    console.error("Error fetching unassigned tickets:", error);
+    res.status(500).send("Server Error");
   }
 });
 
@@ -379,17 +401,6 @@ passport.serializeUser((user, cb) => {
 passport.deserializeUser((user, cb) => {
   cb(null, user);
 });
-
-///Middleware to authorization
-function authorize(role) {
-  return function (req, res, next) {
-    if (req.isAuthenticated() && req.user.role === role) {
-      return next();
-    } else {
-      res.status(403).send("Forbidden");
-    }
-  };
-}
 
 // Start the server
 app.listen(port, () => {
