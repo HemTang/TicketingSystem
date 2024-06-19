@@ -9,6 +9,9 @@ import session from "express-session";
 import flash from "express-flash";
 
 import methodOverride from "method-override";
+import AppError from "./utils/apperror.js";
+import wrapAsync from "./utils/catchAsync.js";
+import validateData from "./utils/middleware.js";
 
 // Create an instance of Express app
 const app = express();
@@ -91,17 +94,15 @@ const db = new pg.Client({
 db.connect();
 
 // Define routes for tickets
-app.get("/", async (req, res) => {
-  if (req.isAuthenticated()) {
-    res.render("index.ejs");
-  } else {
-    res.redirect("/login");
-  }
+app.get("/", isAuthenticated, async (req, res) => {
+  res.render("index.ejs");
 });
 
 //Dashboard information
-app.get("/dashboard", isAuthenticated, async (req, res) => {
-  try {
+app.get(
+  "/dashboard",
+  isAuthenticated,
+  wrapAsync(async (req, res, next) => {
     const open_t = await db.query("SELECT COUNT(*) FROM tickets ");
     const unassigned_t = await db.query(
       "SELECT COUNT(*) FROM tickets WHERE assignedto IS null"
@@ -114,6 +115,7 @@ app.get("/dashboard", isAuthenticated, async (req, res) => {
       "select count(*) from tickets where category = $1",
       ["Software"]
     );
+
     const network_t = await db.query(
       "select count(*) from tickets where category = $1",
       ["Network"]
@@ -130,21 +132,14 @@ app.get("/dashboard", isAuthenticated, async (req, res) => {
       network_ticket: network_t.rows[0].count,
       team_tickets: team_t.rows,
     });
-  } catch (error) {
-    console.error("Error fetching dashboard info:", error);
-    res.status(500).send("Server Error");
-  }
-});
+  })
+);
 app.get("/a_ticket", isAuthenticated, async (req, res) => {
-  if (req.isAuthenticated()) {
-    const A_tickets = await db.query(
-      "SELECT * FROM tickets WHERE assignedto=$1",
-      [req.user.name]
-    );
-    res.render("a_ticket.ejs", { a_tickets: A_tickets.rows, user: req.user });
-  } else {
-    res.redirect("/login");
-  }
+  const A_tickets = await db.query(
+    "SELECT * FROM tickets WHERE assignedto=$1",
+    [req.user.name]
+  );
+  res.render("a_ticket.ejs", { a_tickets: A_tickets.rows, user: req.user });
 });
 app.get("/t_list", isAuthenticated, async (req, res) => {
   const result = await db.query(`SELECT * FROM tickets`);
@@ -213,28 +208,32 @@ app.post("/register", async (req, res) => {
 }); // Register a new user
 
 //Creating new ticket
-app.post("/create", async (req, res) => {
-  const { title, description, priority, category, assignedto, incidentfor } =
-    req.body;
+app.post(
+  "/create",
+  validateData,
+  isAuthenticated,
+  wrapAsync(async (req, res, next) => {
+    const { title, description, priority, category, assignedto, incidentfor } =
+      req.body;
 
-  try {
     await db.query(
       "INSERT INTO tickets (title, description, priority, category, assignedto, incidentfor) VALUES ($1, $2, $3, $4, $5, $6)",
       [title, description, priority, category, assignedto, incidentfor]
     );
     res.redirect("/t_list");
-  } catch (error) {
-    console.error("Error while saving data:", error);
-    res.status(500).send("Server Error");
-  }
-});
+  })
+);
 
 //Viewing ticket
-app.get("/view/:id", async (req, res) => {
-  const id = req.params.id;
+app.get(
+  "/view/:id",
+  wrapAsync(async (req, res, next) => {
+    const id = req.params.id;
 
-  try {
     const result = await db.query(`SELECT * FROM tickets WHERE id=$1`, [id]);
+    if (result.rows.length === 0) {
+      next(new AppError(`Cannot find the Ticket with id of ${id}`, 404));
+    }
     const act_ticket = await db.query(
       "SELECT id, ticket_id as t_id, activity_description as activity FROM activities WHERE ticket_id = $1",
       [id]
@@ -246,11 +245,8 @@ app.get("/view/:id", async (req, res) => {
       activities: act_ticket.rows,
       user: req.user,
     });
-  } catch (error) {
-    console.error("Error creating ticket:", error);
-    res.status(500).send("Server Error");
-  }
-});
+  })
+);
 
 //view update form
 app.get("/update/:id", async (req, res) => {
@@ -386,14 +382,26 @@ passport.use(
   )
 );
 
-// Login user
-app.post(
-  "/login",
-  passport.authenticate("local", {
-    successRedirect: "/t_list",
-    failureRedirect: "/login",
-  })
-);
+// app.all(
+//   "*",
+//   wrapAsync((req, res, next) => {
+//     next(new AppError("Page not found", 404));
+//   })
+// );
+
+///ErrorHandling middleware
+
+app.use((err, req, res, next) => {
+  // If error does not have statusCode, set it to 500 (Internal Server Error)
+  const { statusCode = 500, message = "Somethiong went Wrong" } = err;
+
+  console.error("Error:", err);
+
+  // Render the error template with the error message and status
+  res
+    .status(statusCode)
+    .render("ErrorTemplate.ejs", { message: message, status: statusCode });
+});
 
 passport.serializeUser((user, cb) => {
   cb(null, user);
