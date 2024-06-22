@@ -7,6 +7,8 @@ import passport from "passport";
 import { Strategy } from "passport-local";
 import session from "express-session";
 import flash from "express-flash";
+import xss from "xss";
+import env from "dotenv";
 
 import methodOverride from "method-override";
 import AppError from "./utils/apperror.js";
@@ -17,6 +19,7 @@ import validateData from "./utils/middleware.js";
 const app = express();
 const port = 3000; // Set your desired port
 const saltRounds = 10;
+env.config();
 
 // Middleware to parse JSON bodies
 app.use(bodyParser.urlencoded({ extended: true }));
@@ -26,7 +29,7 @@ app.use(express.static("public"));
 //session middleware
 app.use(
   session({
-    secret: "TOPSECRETWORD",
+    secret: process.env.SESSION_SECRET,
     resave: false,
     saveUninitialized: true,
     cookie: {
@@ -294,7 +297,7 @@ app.delete("/delete/:id", authorize("IT Support"), async (req, res) => {
 //Adding activity to ticket
 app.post("/comment/:id", async (req, res) => {
   const ticket_id = req.params.id;
-  const comment = req.body.comment;
+  const comment = xss(req.body.comment);
 
   try {
     await db.query(
